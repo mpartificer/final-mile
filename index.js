@@ -8,15 +8,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Twilio webhook handler
-app.post('/webhook/twilio', async (req, res) => {
-    // Extract media URL from Twilio request
-    const mediaUrl = req.body.MediaUrl0;
 
-    if (!mediaUrl) {
-        return res.status(400).send('No media found');
-    }
+    app.post('/webhook/twilio', async (req, res) => {
+        try {
+            console.log('Received Twilio webhook:', req.body);
+    
+            const mediaUrl = req.body.MediaUrl0;
+            if (!mediaUrl) {
+                console.warn('No media URL found in request');
+                return res.status(400).send('No media found');
+            }
 
-    try {
         // Download the image
         const imageResponse = await axios({
             method: 'get',
@@ -43,8 +45,9 @@ app.post('/webhook/twilio', async (req, res) => {
 
         res.status(200).send('Image uploaded successfully');
     } catch (error) {
-        console.error('Error processing image:', error);
-        res.status(500).send('Error processing image');
+        console.error('Webhook processing error:', error);
+        // Ensure you always send a response
+        res.status(500).send('Webhook processing failed');
     }
 });
 
