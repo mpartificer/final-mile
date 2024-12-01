@@ -8,17 +8,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Twilio webhook handler
+app.post('/webhook/twilio', async (req, res) => {
+    console.log('Received Twilio webhook request');
+    console.log('Request method:', req.method);
+    console.log('Request body:', req.body);
 
-    app.post('/webhook/twilio', async (req, res) => {
-        try {
-            console.log('Received Twilio webhook:', req.body);
-    
+    // Verify the request method is POST
+    if (req.method !== 'POST') {
+        console.warn('Received non-POST request');
+        return res.status(405).send('Method Not Allowed');
+    }
+
+    try {
             const mediaUrl = req.body.MediaUrl0;
             if (!mediaUrl) {
                 console.warn('No media URL found in request');
                 return res.status(400).send('No media found');
             }
-
         // Download the image
         const imageResponse = await axios({
             method: 'get',
@@ -46,7 +52,6 @@ app.use(express.json());
         res.status(200).send('Image uploaded successfully');
     } catch (error) {
         console.error('Webhook processing error:', error);
-        // Ensure you always send a response
         res.status(500).send('Webhook processing failed');
     }
 });
